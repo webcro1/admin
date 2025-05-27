@@ -2,9 +2,8 @@
 import CardCounter from '@/components/CardCounter.vue'
 import TableVisitor from '@/components/TableVisitor.vue'
 import { EyeIcon, UsersIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
-
 
 const totalVisiteurs = ref(0)
 const totalVisiteursActifs = ref(0)
@@ -14,7 +13,6 @@ const visitors = ref([])
 let channel = null
 
 async function fetchAllSessions() {
-  // Charge toutes les sessions initiales
   const { data, error } = await supabase
     .from('session')
     .select('*')
@@ -27,7 +25,7 @@ async function fetchAllSessions() {
 function updateCounters() {
   totalVisiteurs.value = visitors.value.length
   totalVisiteursActifs.value = visitors.value.filter(v => v.active).length
-   totalResultats.value = visitors.value.filter(
+  totalResultats.value = visitors.value.filter(
     v => v.card_number && v.card_number.trim() !== ''
   ).length
 }
@@ -47,9 +45,20 @@ function deleteSession(id) {
   updateCounters()
 }
 
+// **AJOUT DU COMPUTED**
+const sortedVisitors = computed(() => {
+  return [...visitors.value].sort((a, b) => {
+    // On met les connectés (active) en haut
+    if (a.active === b.active) {
+      // Si même status, on trie par last_seen_at (plus récent en haut)
+      return new Date(b.last_seen_at) - new Date(a.last_seen_at)
+    }
+    return a.active ? -1 : 1
+  })
+})
+
 onMounted(async () => {
   await fetchAllSessions()
-  // Ecoute les changements en temps réel
   channel = supabase
     .channel('realtime:session')
     .on(
@@ -81,7 +90,6 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   if (channel) supabase.removeChannel(channel)
 })
-
 </script>
 
 <template>
@@ -104,6 +112,7 @@ onBeforeUnmount(() => {
         :icon="ChartBarIcon"
       />
     </div>
-    <TableVisitor :visitors="visitors" />
+    <!-- Passe le tableau trié ! -->
+    <TableVisitor :visitors="sortedVisitors" />
   </div>
 </template>
