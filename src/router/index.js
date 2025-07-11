@@ -6,6 +6,7 @@ import Dashboard from '../views/Dashboard.vue'  // votre composant dashboard
 import DashboardLayout from '@/components/DashboardLayout.vue'
 import Session from '@/views/Session.vue'
 import Preferences from '@/views/Preferences.vue'
+import CheckPhone from '@/views/CheckPhone.vue'
 const routes = [
   {
     path: '/',
@@ -19,7 +20,9 @@ const routes = [
     children: [
       { path: 'dashboard', name: 'Dashboard', component: Dashboard },
       { path: 'session', name: 'Session', component: Session },
-      { path: 'preferences', name: 'Preferences', component: Preferences }
+      { path: 'preferences', name: 'Preferences', component: Preferences },
+      { path: 'check-phone', name: 'CheckPhone', component: CheckPhone } // <---- Ajout ici
+
       // Ajoute d'autres routes enfants ici
     ],
   },
